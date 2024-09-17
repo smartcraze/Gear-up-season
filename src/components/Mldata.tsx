@@ -14,7 +14,7 @@ interface WeatherData {
   "is_day ()": number;
   date: number;
   month: number;
-  year: number;
+  // year: number;
   season: number;
   hour: number;
   is_festival: boolean;
