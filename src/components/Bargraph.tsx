@@ -5,6 +5,7 @@ import { AppBar, Toolbar, Typography, Box, Button, Grid, Card, CardContent, Cont
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
+
 // Register the chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -41,15 +42,16 @@ const Bargraph: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <AppBar position="static">
+      
+      {/* <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Analytics Dashboard
           </Typography>
          
         </Toolbar>
-      </AppBar>
-
+      </AppBar> */}
+      
       <Container>
         {/* Statistics Cards */}
         <Box mt={3}>
