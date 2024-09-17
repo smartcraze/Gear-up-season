@@ -1,10 +1,9 @@
-"use client";
-
+"use client"
 import React, { useState } from "react";
 import axios from "axios";
 
 interface WeatherData {
-  Weekend: boolean;
+  Weekend: number;
   "temperature_2m (°C)": number;
   "relative_humidity_2m (%)": number;
   "precipitation (mm)": number;
@@ -12,53 +11,64 @@ interface WeatherData {
   "cloud_cover (%)": number;
   "wind_speed_100m (km/h)": number;
   "direct_radiation (W/m²)": number;
-  "is_day ()": boolean;
-  date: string;
+  "is_day ()": number;
+  date: number;
   month: number;
   year: number;
-  season: string;
+  season: number;
   hour: number;
   is_festival: boolean;
 }
+
+const API_KEY = "a41e1c074bb7041238ca24c0035b18da";
 
 function Mldata() {
   const [date, setDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
   const [data, setData] = useState<WeatherData | null>(null);
+  const [mlResponse, setMlResponse] = useState<any>(null); // Added state for ML response
 
   const fetchWeatherData = async (date: string) => {
-    const apiKey = "a41e1c074bb7041238ca24c0035b18da"; // Replace with your OpenWeatherMap API key
-    const weatherApiUrl = `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=YOUR_LAT&lon=YOUR_LON&dt=${Math.floor(
-      new Date(date).getTime() / 1000
-    )}&appid=${apiKey}&units=metric`;
+    const location = "Delhi";
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=metric`;
 
     try {
-      const response = await axios.get(weatherApiUrl);
-      return response.data;
+      const response = await axios.get(apiUrl);
+      const weather = response.data;
+
+      return {
+        temperature_2m: weather.main.temp,
+        relative_humidity_2m: weather.main.humidity,
+        precipitation: weather.rain?.['1h'] || 0,
+        rain: weather.rain?.['1h'] || 0,
+        cloud_cover: weather.clouds.all,
+        wind_speed_100m: weather.wind.speed * 3.6,
+        direct_radiation: 0,
+        is_day: (weather.sys.sunrise <= Date.now() / 1000 && weather.sys.sunset >= Date.now() / 1000) ? 1 : 0,
+      };
     } catch (error) {
       console.error("Error fetching weather data:", error);
     }
   };
 
   const getSeason = (month: number) => {
-    if (month >= 3 && month <= 5) return "Spring";
-    if (month >= 6 && month <= 8) return "Summer";
-    if (month >= 9 && month <= 11) return "Fall";
-    return "Winter";
+    if (month >= 3 && month <= 5) return 0; // Spring
+    if (month >= 6 && month <= 8) return 1; // Summer
+    if (month >= 9 && month <= 11) return 2; // Fall
+    return 3; // Winter
   };
 
   const isWeekend = (dateObj: Date) => {
     const day = dateObj.getDay();
-    return day === 0 || day === 6;
+    return (day === 0 || day === 6) ? 1 : 0;
   };
 
   const sendToMLModel = async (formattedData: WeatherData) => {
     try {
-      const response = await axios.post("http://localhost:5000/predict", formattedData); // Replace with your Flask endpoint URL
-      console.log("Response from Flask API:", response.data);
-      return response.data;
+      const response = await axios.post("http://localhost:5000/predict", formattedData);
+      setMlResponse(response.data); // Save ML response in state
     } catch (error) {
-      console.error("Error sending data to Flask API:", error);
+      console.error("Error sending data to Flask ML model:", error);
     }
   };
 
@@ -77,17 +87,17 @@ function Mldata() {
 
     const formattedData: WeatherData = {
       Weekend: weekend,
-      "temperature_2m (°C)": weatherData.current.temp,
-      "relative_humidity_2m (%)": weatherData.current.humidity,
-      "precipitation (mm)": weatherData.current.precipitation || 0,
-      "rain (mm)": weatherData.current.rain || 0,
-      "cloud_cover (%)": weatherData.current.clouds,
-      "wind_speed_100m (km/h)": weatherData.current.wind_speed,
-      "direct_radiation (W/m²)": weatherData.current.uvi,
-      "is_day ()": weatherData.current.dt > weatherData.current.sunset,
-      date: date,
+      "temperature_2m (°C)": weatherData.temperature_2m,
+      "relative_humidity_2m (%)": weatherData.relative_humidity_2m,
+      "precipitation (mm)": weatherData.precipitation,
+      "rain (mm)": weatherData.rain,
+      "cloud_cover (%)": weatherData.cloud_cover,
+      "wind_speed_100m (km/h)": weatherData.wind_speed_100m,
+      "direct_radiation (W/m²)": weatherData.direct_radiation,
+      "is_day ()": weatherData.is_day,
+      date: dateObj.getDate(),
       month: month,
-      year: year,
+      // year: year,
       season: season,
       hour: hour,
       is_festival: isFestival,
@@ -95,9 +105,8 @@ function Mldata() {
 
     setData(formattedData);
 
-    // Send the data to the ML model in Flask
-    const mlResponse = await sendToMLModel(formattedData);
-    console.log("Response from ML Model:", mlResponse);
+    // Send the data to the ML model and handle the response
+    await sendToMLModel(formattedData);
   };
 
   return (
@@ -141,6 +150,15 @@ function Mldata() {
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Extracted Data</h2>
             <pre className="text-sm text-gray-700 bg-white p-4 rounded-md shadow-inner">
               {JSON.stringify(data, null, 2)}
+            </pre>
+          </div>
+        )}
+
+        {mlResponse && (
+          <div className="mt-6 p-4 bg-gray-100 rounded-md">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">ML Model Response</h2>
+            <pre className="text-sm text-gray-700 bg-white p-4 rounded-md shadow-inner">
+              {JSON.stringify(mlResponse, null, 2)}
             </pre>
           </div>
         )}
