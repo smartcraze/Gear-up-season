@@ -1,109 +1,133 @@
-'use client'
+'use client';
 
-import React, { useEffect } from 'react';
-import { AppBar, Toolbar, Typography, Box, Button, Grid, Card, CardContent, Container } from '@mui/material';
+import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-
-// Register the chart.js components
+// Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Bargraph: React.FC = () => {
+  // State for input fields
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [apiData, setApiData] = useState<any>(null);
 
-    // fetching the api
-    useEffect(()=>{
-        const url = ""
-        const fetchdata = async()=>{
-            const response = await fetch(url);
-
-        }
-
-    }) 
-
-
-  // Sample data for the bar chart
-  const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Daily visits (people)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        data: [300, 450, 500, 600, 700, 650, 400, 350, 500, 600, 700, 750],
-      },
-      {
-        label: 'Daily visits (control)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        data: [200, 300, 400, 550, 600, 500, 450, 400, 550, 650, 600, 700],
-      },
-    ],
+  // Function to handle card click and show input field for that metric
+  const handleCardClick = (metric: string) => {
+    setSelectedMetric(metric);
   };
+
+  // Function to handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  // Function to fetch data from the API
+  const fetchData = async () => {
+    const url = 'https://api.example.com/data'; // Replace with your actual API endpoint
+    const payload = {
+      metric: selectedMetric,
+      value: inputValue,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST', // Assuming POST request
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      setApiData(result);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  // Sample data for the bar chart (will eventually come from the API)
+  const chartData = apiData
+    ? {
+        labels: apiData.labels,
+        datasets: [
+          {
+            label: 'Data from API',
+            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            data: apiData.data,
+          },
+        ],
+      }
+    : {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: 'Sample Data',
+            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            data: [300, 450, 500, 600, 700, 650, 400, 350, 500, 600, 700, 750],
+          },
+        ],
+      };
 
   return (
     <>
-      {/* Header */}
-      
-      {/* <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Analytics Dashboard
-          </Typography>
-         
-        </Toolbar>
-      </AppBar> */}
-      
-      <Container>
+      <div style={{ margin: '20px' }}>
         {/* Statistics Cards */}
-        <Box mt={3}>
-          <Grid container spacing={2}>
-            <Grid item xs={3}>
-              <Card style={{ backgroundColor: '#3f51b5' }}>
-                <CardContent>
-                  <Typography variant="h5">5.3 MM</Typography>
-                  <Typography variant="subtitle1">Hourly</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={3}>
-              <Card style={{ backgroundColor: '#00acc1' }}>
-                <CardContent>
-                  <Typography variant="h5">58K</Typography>
-                  <Typography variant="subtitle1">Weekly</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={3}>
-              <Card style={{ backgroundColor: '#4caf50' }}>
-                <CardContent>
-                  <Typography variant="h5">1.03%</Typography>
-                  <Typography variant="subtitle1">Monthly</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={3}>
-              <Card style={{ backgroundColor: '#ff9800' }}>
-                <CardContent>
-                  <Typography variant="h5">$0.15</Typography>
-                  <Typography variant="subtitle1">yearly</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
+          <div
+            style={{ backgroundColor: '#3f51b5', color: 'white', padding: '20px', textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => handleCardClick('Hourly')}
+          >
+            <h5>5.3 MM</h5>
+            <p>Hourly</p>
+          </div>
+          <div
+            style={{ backgroundColor: '#00acc1', color: 'white', padding: '20px', textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => handleCardClick('Weekly')}
+          >
+            <h5>58K</h5>
+            <p>Weekly</p>
+          </div>
+          <div
+            style={{ backgroundColor: '#4caf50', color: 'white', padding: '20px', textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => handleCardClick('Monthly')}
+          >
+            <h5>1.03%</h5>
+            <p>Monthly</p>
+          </div>
+          <div
+            style={{ backgroundColor: '#ff9800', color: 'white', padding: '20px', textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => handleCardClick('Yearly')}
+          >
+            <h5>$0.15</h5>
+            <p>Yearly</p>
+          </div>
+        </div>
+
+        {/* Input Field for selected metric */}
+        {selectedMetric && (
+          <div style={{ marginTop: '20px' }}>
+            <h6>Enter value for {selectedMetric}</h6>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder={`${selectedMetric} Value`}
+              style={{ padding: '10px', width: '100%', marginBottom: '10px' }}
+            />
+            <button onClick={fetchData} style={{ padding: '10px 20px', backgroundColor: '#3f51b5', color: 'white', cursor: 'pointer' }}>
+              Fetch Data
+            </button>
+          </div>
+        )}
 
         {/* Bar Chart */}
-        <Box mt={5}>
-          <Typography variant="h6">Foot Traffic Measurement</Typography>
+        <div style={{ marginTop: '40px' }}>
+          <h6>Data Visualization</h6>
           <Bar data={chartData} />
-        </Box>
-
-        {/* Foot Traffic Lift */}
-        <Box mt={3}>
-          <Typography variant="h6">Foot Traffic Lift</Typography>
-          <Typography variant="h4">5.7%</Typography>
-          <Typography variant="body1">95.6% Confidence</Typography>
-        </Box>
-      </Container>
+        </div>
+      </div>
     </>
   );
 };

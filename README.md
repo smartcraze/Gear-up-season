@@ -40,3 +40,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 distribution areas wise 
 electricity forecast
 peak
+
+
+
+
+
+
+a41e1c074bb7041238ca24c0035b18da

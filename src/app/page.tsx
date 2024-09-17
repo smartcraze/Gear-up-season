@@ -1,10 +1,10 @@
-
+import Mldata from "@/components/Mldata";
 
 export default function Home() {
   return (<>
-    <>
-    <h1>Predication model</h1>
-    </>
+    
+    <Mldata/>
+    
   </>
   );
 }
