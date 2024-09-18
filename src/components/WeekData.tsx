@@ -40,9 +40,7 @@ const API_KEY = "a41e1c074bb7041238ca24c0035b18da";
 function WeeklyDemandPrediction() {
   const [startDate, setStartDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
-  const [weeklyPredictions, setWeeklyPredictions] = useState<DailyPrediction[]>(
-    []
-  );
+  const [weeklyPredictions, setWeeklyPredictions] = useState<DailyPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWeatherData = async (date: string) => {
@@ -87,10 +85,7 @@ function WeeklyDemandPrediction() {
 
   const sendToMLModel = async (formattedData: WeatherData) => {
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5000/predict",
-        formattedData
-      );
+      const response = await axios.post("http://127.0.0.1:5000/predict", formattedData);
       return response.data.predicted_hourly_demand;
     } catch (error) {
       console.error("Error sending data to Flask ML model:", error);
@@ -115,9 +110,7 @@ function WeeklyDemandPrediction() {
         const weekend = isWeekend(currentDate);
         const season = getSeason(month);
 
-        const weatherData = await fetchWeatherData(
-          currentDate.toISOString().split("T")[0]
-        );
+        const weatherData = await fetchWeatherData(currentDate.toISOString().split("T")[0]);
 
         for (let hour = 0; hour < 24; hour++) {
           const formattedData: WeatherData = {
@@ -151,7 +144,15 @@ function WeeklyDemandPrediction() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex items-center justify-center">
+    <div
+      className="min-h-screen p-6 flex items-center justify-center"
+      style={{
+        backgroundImage: "url('/bg.jpg')", // Replace with your image path
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed", // This makes the background image fixed
+      }}
+    >
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Weekly Demand Prediction

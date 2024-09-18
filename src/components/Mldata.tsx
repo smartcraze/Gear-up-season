@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -31,6 +31,7 @@ function Mldata() {
   const [date, setDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
   const [hourlyPredictions, setHourlyPredictions] = useState<HourlyPrediction[]>([]);
+  const [totalDemand, setTotalDemand] = useState(0); // New state for total demand
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWeatherData = async (date: string) => {
@@ -83,6 +84,7 @@ function Mldata() {
     event.preventDefault();
     setIsLoading(true);
     setHourlyPredictions([]);
+    setTotalDemand(0); // Reset total demand before recalculating
 
     try {
       const dateObj = new Date(date);
@@ -93,7 +95,7 @@ function Mldata() {
       const weatherData = await fetchWeatherData(date);
 
       const predictions: HourlyPrediction[] = [];
-
+      let total = 0; // Initialize the total demand for the day
       for (let hour = 0; hour < 24; hour++) {
         const formattedData: WeatherData = {
           Weekend: weekend,
@@ -114,9 +116,11 @@ function Mldata() {
 
         const demand = await sendToMLModel(formattedData);
         predictions.push({ hour, demand });
+        total += demand; // Accumulate the total demand
       }
 
       setHourlyPredictions(predictions);
+      setTotalDemand(total); // Set the total demand in the state
     } catch (error) {
       console.error("Error processing data:", error);
     } finally {
@@ -125,7 +129,15 @@ function Mldata() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex items-center justify-center">
+    <div
+      className="min-h-screen p-6 flex items-center justify-center"
+      style={{
+        backgroundImage: "url('/bg.jpg')", // Replace with your image path
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed", // This makes the background image fixed
+      }}
+    >
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Hourly Demand Prediction
@@ -174,6 +186,12 @@ function Mldata() {
                 <Line type="monotone" dataKey="demand" stroke="#8884d8" activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
+            {/* Display total demand */}
+            <div className="mt-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Total Demand for the Day: {totalDemand.toFixed(2)} units
+              </h2>
+            </div>
           </div>
         )}
       </div>

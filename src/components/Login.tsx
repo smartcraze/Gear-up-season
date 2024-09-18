@@ -1,21 +1,23 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
+
 function Login() {
   // State for capturing input values
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('admin'); // Default role
 
   // Event handler for form submission
   const handleSubmit = (e:any) => {
     e.preventDefault();
-    console.log("Login submitted with:", { username, password });
+    console.log("Login submitted with:", { username, password, role });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-800 to-indigo-900">
       <div className="bg-white shadow-lg rounded-lg p-8 max-w-sm w-full">
         <div className="mb-4 text-center">
-          <h2 className="text-3xl font-semibold text-gray-800">User Login</h2>
+          <h2 className="text-3xl font-semibold text-gray-800">Authorities Login</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -40,9 +42,23 @@ function Login() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Role</label>
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value)} 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="admin">Admin</option>
+              <option value="vendor">distributor 1</option>
+              <option value="vendor">distributor 2</option>
+              <option value="vendor">distributor 3</option>
+            </select>
+          </div>
+
           <div className="flex items-center justify-between">
             <label className="flex items-center">
-              <input type="checkbox" className="h-4 w-4  text-indigo-600 border-gray-300 rounded" />
+              <input type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
               <span className="ml-2 text-sm text-gray-600">Keep me logged in</span>
             </label>
             <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">Forgot Password?</a>
