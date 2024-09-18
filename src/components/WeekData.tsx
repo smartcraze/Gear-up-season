@@ -1,7 +1,16 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface WeatherData {
   Weekend: number;
@@ -31,7 +40,9 @@ const API_KEY = "a41e1c074bb7041238ca24c0035b18da";
 function WeeklyDemandPrediction() {
   const [startDate, setStartDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
-  const [weeklyPredictions, setWeeklyPredictions] = useState<DailyPrediction[]>([]);
+  const [weeklyPredictions, setWeeklyPredictions] = useState<DailyPrediction[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWeatherData = async (date: string) => {
@@ -50,7 +61,11 @@ function WeeklyDemandPrediction() {
         cloud_cover: weather.clouds.all,
         wind_speed_100m: weather.wind.speed * 3.6,
         direct_radiation: 0,
-        is_day: weather.sys.sunrise <= Date.now() / 1000 && weather.sys.sunset >= Date.now() / 1000 ? 1 : 0,
+        is_day:
+          weather.sys.sunrise <= Date.now() / 1000 &&
+          weather.sys.sunset >= Date.now() / 1000
+            ? 1
+            : 0,
       };
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -72,7 +87,10 @@ function WeeklyDemandPrediction() {
 
   const sendToMLModel = async (formattedData: WeatherData) => {
     try {
-      const response = await axios.post("http://127.0.0.1:5000/predict", formattedData);
+      const response = await axios.post(
+        "http://127.0.0.1:5000/predict",
+        formattedData
+      );
       return response.data.predicted_hourly_demand;
     } catch (error) {
       console.error("Error sending data to Flask ML model:", error);
@@ -97,7 +115,9 @@ function WeeklyDemandPrediction() {
         const weekend = isWeekend(currentDate);
         const season = getSeason(month);
 
-        const weatherData = await fetchWeatherData(currentDate.toISOString().split('T')[0]);
+        const weatherData = await fetchWeatherData(
+          currentDate.toISOString().split("T")[0]
+        );
 
         for (let hour = 0; hour < 24; hour++) {
           const formattedData: WeatherData = {
@@ -150,7 +170,9 @@ function WeeklyDemandPrediction() {
             />
           </div>
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">Is Festival:</label>
+            <label className="text-sm font-medium text-gray-700">
+              Is Festival:
+            </label>
             <input
               type="checkbox"
               checked={isFestival}
@@ -169,29 +191,51 @@ function WeeklyDemandPrediction() {
 
         {weeklyPredictions.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Demand Predictions</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Weekly Demand Predictions
+            </h2>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={weeklyPredictions}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="hour" 
-                  label={{ value: 'Hour', position: 'insideBottom', offset: -10 }}
+                <XAxis
+                  dataKey="hour"
+                  label={{
+                    value: "Hour",
+                    position: "insideBottom",
+                    offset: -10,
+                  }}
                   ticks={[0, 6, 12, 18, 23]}
+                  padding={{ left: 10, right: 10 }} // Added padding to X-axis
+                  domain={[0, 23]} // Ensures the full range is displayed
                 />
-                <YAxis label={{ value: 'Predicted Demand', angle: -90, position: 'insideLeft' }} />
-                <Tooltip 
-                  labelFormatter={(label) => `Day ${Math.floor(label / 24) + 1}, Hour ${label % 24}`}
-                  formatter={(value, name, props) => [`${value.toFixed(2)}`, 'Demand']}
+                <YAxis
+                  label={{
+                    value: "Predicted Demand",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                <Tooltip
+                  labelFormatter={(label) => {
+                    const day = Math.floor(label / 24);
+                    const hour = label % 24;
+                    return `Day ${day + 1}, Hour ${hour}`;
+                  }}
+                  formatter={(value, name, props) => [
+                    `${value.toFixed(2)}`,
+                    "Demand",
+                  ]}
                 />
                 <Legend />
-                {[...Array(7)].map((_, index) => (
-                  <Line 
-                    key={index}
-                    type="monotone" 
-                    dataKey="demand" 
-                    data={weeklyPredictions.filter(p => p.day === index)}
-                    name={`Day ${index + 1}`}
-                    stroke={`hsl(${index * 360 / 7}, 70%, 50%)`}
+                {/* Create a line for each day */}
+                {Array.from({ length: 7 }).map((_, day) => (
+                  <Line
+                    key={day}
+                    type="monotone"
+                    dataKey="demand"
+                    data={weeklyPredictions.filter((p) => p.day === day)}
+                    name={`Day ${day + 1}`}
+                    stroke={`hsl(${(day * 360) / 7}, 70%, 50%)`}
                     dot={false}
                   />
                 ))}
