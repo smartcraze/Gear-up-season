@@ -20,17 +20,18 @@ interface WeatherData {
   is_festival: boolean;
 }
 
-interface HourlyPrediction {
+interface DailyPrediction {
+  day: number;
   hour: number;
   demand: number;
 }
 
 const API_KEY = "a41e1c074bb7041238ca24c0035b18da";
 
-function Mldata() {
-  const [date, setDate] = useState("");
+function WeeklyDemandPrediction() {
+  const [startDate, setStartDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
-  const [hourlyPredictions, setHourlyPredictions] = useState<HourlyPrediction[]>([]);
+  const [weeklyPredictions, setWeeklyPredictions] = useState<DailyPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWeatherData = async (date: string) => {
@@ -82,41 +83,46 @@ function Mldata() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
-    setHourlyPredictions([]);
+    setWeeklyPredictions([]);
 
     try {
-      const dateObj = new Date(date);
-      const month = dateObj.getMonth() + 1;
-      const weekend = isWeekend(dateObj);
-      const season = getSeason(month);
+      const startDateObj = new Date(startDate);
+      const predictions: DailyPrediction[] = [];
 
-      const weatherData = await fetchWeatherData(date);
+      for (let day = 0; day < 7; day++) {
+        const currentDate = new Date(startDateObj);
+        currentDate.setDate(startDateObj.getDate() + day);
 
-      const predictions: HourlyPrediction[] = [];
+        const month = currentDate.getMonth() + 1;
+        const weekend = isWeekend(currentDate);
+        const season = getSeason(month);
 
-      for (let hour = 0; hour < 24; hour++) {
-        const formattedData: WeatherData = {
-          Weekend: weekend,
-          "temperature_2m (°C)": weatherData.temperature_2m,
-          "relative_humidity_2m (%)": weatherData.relative_humidity_2m,
-          "precipitation (mm)": weatherData.precipitation,
-          "rain (mm)": weatherData.rain,
-          "cloud_cover (%)": weatherData.cloud_cover,
-          "wind_speed_100m (km/h)": weatherData.wind_speed_100m,
-          "direct_radiation (W/m²)": weatherData.direct_radiation,
-          "is_day ()": hour >= 6 && hour < 18 ? 1 : 0, // Simplified day/night logic
-          date: dateObj.getDate(),
-          month: month,
-          season: season,
-          hour: hour,
-          is_festival: isFestival,
-        };
+        const weatherData = await fetchWeatherData(currentDate.toISOString().split('T')[0]);
 
-        const demand = await sendToMLModel(formattedData);
-        predictions.push({ hour, demand });
+        for (let hour = 0; hour < 24; hour++) {
+          const formattedData: WeatherData = {
+            Weekend: weekend,
+            "temperature_2m (°C)": weatherData.temperature_2m,
+            "relative_humidity_2m (%)": weatherData.relative_humidity_2m,
+            "precipitation (mm)": weatherData.precipitation,
+            "rain (mm)": weatherData.rain,
+            "cloud_cover (%)": weatherData.cloud_cover,
+            "wind_speed_100m (km/h)": weatherData.wind_speed_100m,
+            "direct_radiation (W/m²)": weatherData.direct_radiation,
+            "is_day ()": hour >= 6 && hour < 18 ? 1 : 0,
+            date: currentDate.getDate(),
+            month: month,
+            season: season,
+            hour: hour,
+            is_festival: isFestival,
+          };
+
+          const demand = await sendToMLModel(formattedData);
+          predictions.push({ day, hour, demand });
+        }
       }
 
-      setHourlyPredictions(predictions);
+      setWeeklyPredictions(predictions);
     } catch (error) {
       console.error("Error processing data:", error);
     } finally {
@@ -128,17 +134,17 @@ function Mldata() {
     <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Hourly Demand Prediction
+          Weekly Demand Prediction
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date:
+              Start Date:
             </label>
             <input
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
               required
               className="w-full px-4 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -161,17 +167,34 @@ function Mldata() {
           </button>
         </form>
 
-        {hourlyPredictions.length > 0 && (
+        {weeklyPredictions.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Hourly Demand Predictions</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Demand Predictions</h2>
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={hourlyPredictions}>
+              <LineChart data={weeklyPredictions}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" label={{ value: 'Hour', position: 'insideBottom', offset: -10 }} />
+                <XAxis 
+                  dataKey="hour" 
+                  label={{ value: 'Hour', position: 'insideBottom', offset: -10 }}
+                  ticks={[0, 6, 12, 18, 23]}
+                />
                 <YAxis label={{ value: 'Predicted Demand', angle: -90, position: 'insideLeft' }} />
-                <Tooltip />
+                <Tooltip 
+                  labelFormatter={(label) => `Day ${Math.floor(label / 24) + 1}, Hour ${label % 24}`}
+                  formatter={(value, name, props) => [`${value.toFixed(2)}`, 'Demand']}
+                />
                 <Legend />
-                <Line type="monotone" dataKey="demand" stroke="#8884d8" activeDot={{ r: 8 }} />
+                {[...Array(7)].map((_, index) => (
+                  <Line 
+                    key={index}
+                    type="monotone" 
+                    dataKey="demand" 
+                    data={weeklyPredictions.filter(p => p.day === index)}
+                    name={`Day ${index + 1}`}
+                    stroke={`hsl(${index * 360 / 7}, 70%, 50%)`}
+                    dot={false}
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -181,4 +204,4 @@ function Mldata() {
   );
 }
 
-export default Mldata;
+export default WeeklyDemandPrediction;
