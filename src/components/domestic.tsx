@@ -29,7 +29,7 @@ interface HourlyPrediction {
 
 const API_KEY = "a41e1c074bb7041238ca24c0035b18da";
 
-function Mldata() {
+function Domestic() {
   const [date, setDate] = useState("");
   const [isFestival, setIsFestival] = useState(false);
   const [hourlyPredictions, setHourlyPredictions] = useState<HourlyPrediction[]>([]);
@@ -78,7 +78,7 @@ function Mldata() {
 
   const sendToMLModel = async (formattedData: WeatherData) => {
     try {
-      const response = await axios.post("http://127.0.0.1:5000/predict/model1", formattedData);
+      const response = await axios.post("http://127.0.0.1:5000/predict/model2", formattedData);
       return response.data.predicted_hourly_demand;
     } catch (error) {
       console.error("Error sending data to Flask ML model:", error);
@@ -181,7 +181,7 @@ function Mldata() {
     >
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Hourly Demand Prediction
+          Domestic Demand Prediction
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div>
@@ -255,4 +255,4 @@ function Mldata() {
   );
 }
 
-export default Mldata;
+export default Domestic;

@@ -18,7 +18,7 @@ function Navbar({ className }: { className?: string }) {
             </MenuItem>
             </Link>
             <Link href={"/dashboard"}>
-            <MenuItem setActive={setActive} active={active} item="Dashboard">
+            <MenuItem setActive={setActive} active={active} item="Prediction Models">
             
             </MenuItem>
             </Link>

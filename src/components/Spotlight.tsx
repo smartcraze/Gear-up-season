@@ -32,11 +32,11 @@ export function SpotlightPreview() {
           technology, power suppliers can ensure efficiency, reduce waste, and
           maintain a reliable energy supply.
         </p>
-        <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
+        {/* <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
           By forecasting future energy demands, providers can prepare for
           peak loads, avoid blackouts, and optimize resource use—ensuring sustainability
           and cost-effectiveness in energy management.
-        </p>
+        </p> */}
       </div>
     </div>
   );

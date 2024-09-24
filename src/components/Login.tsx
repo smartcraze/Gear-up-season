@@ -1,16 +1,34 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';  // Import useRouter from next/navigation
 
 function Login() {
   // State for capturing input values
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('admin'); // Default role
+  const router = useRouter();  // Initialize useRouter hook
 
   // Event handler for form submission
-  const handleSubmit = (e:any) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log("Login submitted with:", { username, password, role });
+    // Hardcoded credentials
+    const correctUsername = 'admin';
+    const correctPassword = 'password123';
+
+    // Check if the credentials match
+    if (username === correctUsername && password === correctPassword) {
+      console.log("Login successful with:", { username, password, role });
+
+      // Set some auth data (you can store in cookies, localStorage, etc.)
+      localStorage.setItem('isAuthenticated', 'true'); // Example of setting auth state
+
+      // Redirect to the /home route after login
+      router.push('/');
+    } else {
+      console.log("Invalid credentials");
+      alert("Invalid username or password"); // Display error message
+    }
   };
 
   return (
@@ -63,16 +81,14 @@ function Login() {
             </label>
             <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">Forgot Password?</a>
           </div>
-
-          <div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Login
-            </button>
-          </div>
         </form>
+        <div className="mt-4 text-center">
+          <button 
+            onClick={handleSubmit} 
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Submit
+          </button>
+        </div> 
       </div>
     </div>
   );
