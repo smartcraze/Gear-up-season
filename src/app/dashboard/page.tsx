@@ -7,9 +7,6 @@ function page() {
   return (
     <div>
         <RedirectButtons/>
-        {/* <Mldata/>
-        <WeeklyDemandPrediction/> */}
-
     </div>
   )
 }
